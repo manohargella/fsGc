@@ -66,7 +66,7 @@ export default function LoginPage() {
       <Card className="w-full max-w-sm">
         <CardHeader className="text-center">
           <CardTitle className="text-2xl font-bold">GradeCal</CardTitle>
-          <CardDescription>Sign in to save your grades and access them anywhere</CardDescription>
+          <CardDescription>Sign in "Build by Manohar Gella"</CardDescription>
         </CardHeader>
         <CardContent>
           <Button onClick={handleSignIn} className="w-full">
