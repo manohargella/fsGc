@@ -78,11 +78,13 @@ export const semesterSubjects: Record<string, { name: string; credit: number }[]
 
 export const getGradeLetter = (gradePoint: number): string => {
   if (isNaN(gradePoint) || gradePoint < 0) return "-";
-  if (gradePoint >= 9) return "A+";
-  if (gradePoint >= 8) return "A";
-  if (gradePoint >= 7) return "B";
-  if (gradePoint >= 6) return "C";
-  if (gradePoint >= 5) return "D";
-  if (gradePoint < 5) return "F";
+  if (gradePoint === 10) return "O";
+  if (gradePoint === 9) return "A+";
+  if (gradePoint === 8) return "A";
+  if (gradePoint === 7) return "B+";
+  if (gradePoint === 6) return "B";
+  if (gradePoint === 5) return "C";
+  if (gradePoint === 4) return "P";
+  if (gradePoint < 4) return "F";
   return "-";
 };
