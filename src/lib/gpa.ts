@@ -62,6 +62,7 @@ export const semesterSubjects: Record<string, { name: string; credit: number }[]
       { name: "Object oriented Software Engineering Lab", credit: 1.5 },
       { name: "Machine Learning Lab", credit: 1.5 },
       { name: "Cryptography & Network Security Lab", credit: 2 },
+      { name: "Embedded Systems Design", credit: 2 },
     ],
     "7": [
       { name: "Professional Elective 3", credit: 3 },
