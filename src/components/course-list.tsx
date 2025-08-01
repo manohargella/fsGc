@@ -21,11 +21,26 @@ type CourseListProps = {
 };
 
 export default function CourseList({ subjects, grades, onGradeChange, currentSemester }: CourseListProps) {
+  const handleKeyPress = (event: React.KeyboardEvent<HTMLInputElement>, currentIndex: number) => {
+    if (event.key === 'Enter') {
+      event.preventDefault();
+      const nextIndex = currentIndex + 1;
+      if (nextIndex < subjects.length) {
+        // Focus the next input field
+        const nextInput = document.querySelector(`input[data-index="${nextIndex}"]`) as HTMLInputElement;
+        if (nextInput) {
+          nextInput.focus();
+          nextInput.select();
+        }
+      }
+    }
+  };
+
   return (
     <Card>
       <CardHeader>
         <CardTitle>Semester {currentSemester} Subjects</CardTitle>
-        <CardDescription>Enter grade points for each subject to calculate GPA.</CardDescription>
+        <CardDescription>Enter grade points for each subject to calculate GPA. Use Enter to move to next field.</CardDescription>
       </CardHeader>
       <CardContent>
         {subjects.length > 0 ? (
@@ -52,15 +67,18 @@ export default function CourseList({ subjects, grades, onGradeChange, currentSem
                                     className="text-center w-full"
                                     min="0"
                                     max="10"
-                                    step="0.1"
+                                    step="0.01"
+                                    data-index={index}
                                     value={gradeValue}
-                                    onChange={(e) => onGradeChange(index, e.target.value)}
-                                    placeholder="-"
-                                    onKeyPress={(event) => {
-                                      if (!/[0-9.]/.test(event.key)) {
-                                        event.preventDefault();
+                                    onChange={(e) => {
+                                      const value = e.target.value;
+                                      // Allow decimal values and validate range
+                                      if (value === '' || (parseFloat(value) >= 0 && parseFloat(value) <= 10)) {
+                                        onGradeChange(index, value);
                                       }
                                     }}
+                                    onKeyPress={(event) => handleKeyPress(event, index)}
+                                    placeholder="-"
                                 />
                             </TableCell>
                             <TableCell className="text-center font-bold p-2 md:p-4 text-base md:text-xl">{getGradeLetter(parseFloat(String(gradeValue)))}</TableCell>

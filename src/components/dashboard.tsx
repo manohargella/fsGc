@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useMemo, useEffect } from "react";
-import { Moon, Sun, LogOut, Loader2 } from "lucide-react";
+import { Moon, Sun, LogOut, Loader2, BarChart3, TrendingUp, FileText } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { doc, getDoc, setDoc } from "firebase/firestore";
 import { signOut } from "firebase/auth";
@@ -17,6 +17,8 @@ import GpaDisplay from "./gpa-display";
 import CourseList from "./course-list";
 import CourseForm from "./course-form";
 import GradeDistributionChart from "./grade-distribution-chart";
+import GpaTrendChart from "./gpa-trend-chart";
+import ReportCardGenerator from "./report-card-generator";
 import { Button } from "./ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
@@ -27,6 +29,14 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 
 export default function Dashboard() {
   const router = useRouter();
@@ -38,6 +48,9 @@ export default function Dashboard() {
   const [currentSemester, setCurrentSemester] = useState<string>("1");
   const [semestersData, setSemestersData] = useState<AllSemesterGrades>({});
   const [isDataLoaded, setIsDataLoaded] = useState(false);
+  const [showGradeDistribution, setShowGradeDistribution] = useState(false);
+  const [showGpaTrend, setShowGpaTrend] = useState(false);
+  const [showReportCard, setShowReportCard] = useState(false);
 
   const currentSubjects = useMemo(() => semesterSubjects[currentSemester] || [], [currentSemester]);
   const currentGrades = useMemo(() => semestersData[currentSemester] || [], [semestersData, currentSemester]);
@@ -188,6 +201,58 @@ export default function Dashboard() {
                         </div>
                     </DropdownMenuLabel>
                     <DropdownMenuSeparator />
+                    <Dialog open={showGradeDistribution} onOpenChange={setShowGradeDistribution}>
+                        <DialogTrigger asChild>
+                            <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+                                <BarChart3 className="mr-2 h-4 w-4" />
+                                <span>Grade Distribution</span>
+                            </DropdownMenuItem>
+                        </DialogTrigger>
+                        <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+                            <DialogHeader>
+                                <DialogTitle>Grade Distribution Analysis</DialogTitle>
+                                <DialogDescription>
+                                    Detailed breakdown of your letter grades across all semesters
+                                </DialogDescription>
+                            </DialogHeader>
+                            <GradeDistributionChart semestersData={semestersData} />
+                        </DialogContent>
+                    </Dialog>
+                    <Dialog open={showGpaTrend} onOpenChange={setShowGpaTrend}>
+                        <DialogTrigger asChild>
+                            <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+                                <TrendingUp className="mr-2 h-4 w-4" />
+                                <span>GPA Trend Analysis</span>
+                            </DropdownMenuItem>
+                        </DialogTrigger>
+                        <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+                            <DialogHeader>
+                                <DialogTitle>GPA Trend Analysis</DialogTitle>
+                                <DialogDescription>
+                                    Track your academic progress over time
+                                </DialogDescription>
+                            </DialogHeader>
+                            <GpaTrendChart semestersData={semestersData} />
+                        </DialogContent>
+                    </Dialog>
+                    <Dialog open={showReportCard} onOpenChange={setShowReportCard}>
+                        <DialogTrigger asChild>
+                            <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+                                <FileText className="mr-2 h-4 w-4" />
+                                <span>Generate Report Card</span>
+                            </DropdownMenuItem>
+                        </DialogTrigger>
+                        <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+                            <DialogHeader>
+                                <DialogTitle>Report Card Generator</DialogTitle>
+                                <DialogDescription>
+                                    Create a professional PDF report card with Manohar Labs branding
+                                </DialogDescription>
+                            </DialogHeader>
+                            <ReportCardGenerator semestersData={semestersData} user={user} />
+                        </DialogContent>
+                    </Dialog>
+                    <DropdownMenuSeparator />
                     <DropdownMenuItem onClick={handleLogout}>
                         <LogOut className="mr-2 h-4 w-4" />
                         <span>Log out</span>
@@ -214,7 +279,6 @@ export default function Dashboard() {
                 onSemesterChange={setCurrentSemester}
             />
             <GpaDisplay sgpa={sgpa} cgpa={cgpa} />
-            <GradeDistributionChart gpa={cgpa} />
           </div>
         </div>
       </main>
