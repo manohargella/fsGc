@@ -111,6 +111,20 @@ export default function Dashboard() {
     });
   };
 
+  const resetAllGrades = () => {
+    setSemestersData({});
+    toast({ title: "All Grades Reset", description: "All grades across all semesters have been cleared.", variant: "default" });
+  };
+
+  const clearCurrentSemesterGrades = () => {
+    if (semestersData[currentSemester]) {
+      const newSemestersData = { ...semestersData };
+      delete newSemestersData[currentSemester];
+      setSemestersData(newSemestersData);
+      toast({ title: "Semester Grades Cleared", description: `Grades for semester ${currentSemester} have been cleared.`, variant: "default" });
+    }
+  };
+
   const { sgpa, cgpa } = useMemo(() => {
     let semesterTotalScore = 0;
     let semesterTotalCredits = 0;
@@ -270,6 +284,8 @@ export default function Dashboard() {
                 grades={currentGrades} 
                 onGradeChange={handleGradeChange}
                 currentSemester={currentSemester}
+                resetAllGrades={resetAllGrades}
+                clearCurrentSemesterGrades={clearCurrentSemesterGrades}
             />
           </div>
 

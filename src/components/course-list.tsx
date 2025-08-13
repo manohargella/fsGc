@@ -10,6 +10,18 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import { getGradeLetter } from "@/lib/gpa";
 import type { Subject, SemesterGrade } from "@/types";
 
@@ -18,9 +30,11 @@ type CourseListProps = {
   grades: SemesterGrade[];
   onGradeChange: (subjectIndex: number, gradePoint: string) => void;
   currentSemester: string;
+  resetAllGrades: () => void;
+  clearCurrentSemesterGrades: () => void;
 };
 
-export default function CourseList({ subjects, grades, onGradeChange, currentSemester }: CourseListProps) {
+export default function CourseList({ subjects, grades, onGradeChange, currentSemester, resetAllGrades, clearCurrentSemesterGrades }: CourseListProps) {
   const handleKeyPress = (event: React.KeyboardEvent<HTMLInputElement>, currentIndex: number) => {
     if (event.key === 'Enter') {
       event.preventDefault();
@@ -96,6 +110,53 @@ export default function CourseList({ subjects, grades, onGradeChange, currentSem
             </p>
           </div>
         )}
+        
+        {/* Action Buttons */}
+        <div className="flex flex-col sm:flex-row gap-3 mt-6">
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <Button variant="destructive" className="w-full sm:w-auto">
+                Reset All Grades
+              </Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Reset All Grades</AlertDialogTitle>
+                <AlertDialogDescription>
+                  This action will permanently clear all grades across all semesters. This action cannot be undone.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                <AlertDialogAction onClick={resetAllGrades} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+                  Reset All
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <Button variant="outline" className="w-full sm:w-auto">
+                Clear Semester {currentSemester}
+              </Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Clear Semester {currentSemester} Grades</AlertDialogTitle>
+                <AlertDialogDescription>
+                  This action will clear all grades for semester {currentSemester} only. This action cannot be undone.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                <AlertDialogAction onClick={clearCurrentSemesterGrades} className="bg-orange-600 text-white hover:bg-orange-700">
+                  Clear Semester
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+        </div>
       </CardContent>
     </Card>
   );
