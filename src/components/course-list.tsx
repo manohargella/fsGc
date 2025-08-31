@@ -107,10 +107,10 @@ export default function CourseList({ subjects, grades, onGradeChange, currentSem
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead className="w-[40%] px-2 text-sm">Subject Name</TableHead>
-                  <TableHead className="text-center px-2 text-sm">Credits</TableHead>
-                  <TableHead className="text-center px-2 text-sm">Grade Point</TableHead>
-                  <TableHead className="text-center px-2 text-sm">Letter Grade</TableHead>
+                  <TableHead className="w-[50%] px-2 text-sm font-medium">Subject Name</TableHead>
+                  <TableHead className="text-center px-2 text-sm font-medium">Credits</TableHead>
+                  <TableHead className="text-center px-2 text-sm font-medium">Grade Point</TableHead>
+                  <TableHead className="text-center px-2 text-sm font-medium">Letter Grade</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -119,13 +119,13 @@ export default function CourseList({ subjects, grades, onGradeChange, currentSem
                     return (
                         <TableRow key={subject.name}>
                             <TableCell className="font-medium p-2 text-sm">
-                                <div className="flex items-center gap-2">
-                                    <div className="flex-1">
-                                        <span className={subject.isEditable ? "text-blue-600 font-medium" : ""}>
+                                <div className="flex items-start gap-2">
+                                    <div className="flex-1 min-w-0">
+                                        <span className={`block break-words ${subject.isEditable ? "text-blue-600 font-medium" : ""}`}>
                                             {getDisplaySubjectName(subject, index)}
                                         </span>
                                         {subject.isEditable && (
-                                            <span className="ml-2 text-xs text-blue-500 bg-blue-50 dark:bg-blue-950 px-2 py-1 rounded-full">
+                                            <span className="inline-block mt-1 text-xs text-blue-500 bg-blue-50 dark:bg-blue-950 px-2 py-1 rounded-full">
                                                 Elective
                                             </span>
                                         )}
@@ -135,14 +135,16 @@ export default function CourseList({ subjects, grades, onGradeChange, currentSem
                                             variant="ghost"
                                             size="sm"
                                             onClick={() => startEditingSubject(index, subject.name)}
-                                            className="h-6 w-6 p-0 opacity-60 hover:opacity-100"
+                                            className="h-6 w-6 p-0 opacity-60 hover:opacity-100 flex-shrink-0 mt-0.5"
                                         >
                                             <Edit2 className="h-3 w-3" />
                                         </Button>
                                     )}
                                 </div>
                             </TableCell>
-                            <TableCell className="text-center p-2 text-sm">{subject.credit}</TableCell>
+                            <TableCell className="text-center p-2 text-sm font-medium">
+                                {subject.credit}
+                            </TableCell>
                             <TableCell className="w-[100px] p-2">
                                 <Input 
                                     type="number" 
@@ -163,7 +165,9 @@ export default function CourseList({ subjects, grades, onGradeChange, currentSem
                                     placeholder="-"
                                 />
                             </TableCell>
-                            <TableCell className="text-center font-bold p-2 text-lg">{getGradeLetter(parseFloat(String(gradeValue)))}</TableCell>
+                            <TableCell className="text-center font-bold p-2 text-lg">
+                                {getGradeLetter(parseFloat(String(gradeValue)))}
+                            </TableCell>
                         </TableRow>
                     );
                 })}
