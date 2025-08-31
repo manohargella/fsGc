@@ -53,7 +53,8 @@ export default function Dashboard() {
   const [showReportCard, setShowReportCard] = useState(false);
 
   const currentSubjects = useMemo(() => semesterSubjects[currentSemester] || [], [currentSemester]);
-  const currentGrades = useMemo(() => semestersData[currentSemester] || [], [semestersData, currentSemester]);
+  const currentGrades = useMemo(() => semestersData[currentSemester]?.grades || [], [semestersData, currentSemester]);
+  const currentCustomSubjects = useMemo(() => semestersData[currentSemester]?.customSubjects || {}, [semestersData, currentSemester]);
   
   useEffect(() => {
     document.documentElement.classList.toggle("dark", theme === "dark");
@@ -71,7 +72,23 @@ export default function Dashboard() {
       const docRef = doc(db, "users", user.uid);
       getDoc(docRef).then((docSnap) => {
         if (docSnap.exists()) {
-          setSemestersData(docSnap.data().semestersData || {});
+          const data = docSnap.data();
+          // Handle migration from old format to new format
+          const oldSemestersData = data.semestersData || {};
+          const newSemestersData: AllSemesterGrades = {};
+          
+          Object.keys(oldSemestersData).forEach(semKey => {
+            const oldData = oldSemestersData[semKey];
+            if (Array.isArray(oldData)) {
+              // Old format: just an array of grades
+              newSemestersData[semKey] = { grades: oldData };
+            } else {
+              // New format: already has the correct structure
+              newSemestersData[semKey] = oldData;
+            }
+          });
+          
+          setSemestersData(newSemestersData);
         }
         setIsDataLoaded(true);
       });
@@ -102,12 +119,23 @@ export default function Dashboard() {
         gpVal = "0";
     }
 
-    const newGrades = [...(semestersData[currentSemester] || currentSubjects.map(() => ({ gradePoint: "" })))];
+    if (!semestersData[currentSemester]) {
+      setSemestersData({
+        ...semestersData,
+        [currentSemester]: { grades: [], customSubjects: {} }
+      });
+    }
+
+    const currentSemesterData = semestersData[currentSemester] || { grades: [], customSubjects: {} };
+    const newGrades = [...(currentSemesterData.grades || currentSubjects.map(() => ({ gradePoint: "" })))];
     newGrades[subjectIndex] = { gradePoint: gpVal };
 
     setSemestersData({
       ...semestersData,
-      [currentSemester]: newGrades,
+      [currentSemester]: {
+        ...currentSemesterData,
+        grades: newGrades
+      }
     });
   };
 
@@ -123,6 +151,32 @@ export default function Dashboard() {
       setSemestersData(newSemestersData);
       toast({ title: "Semester Grades Cleared", description: `Grades for semester ${currentSemester} have been cleared.`, variant: "default" });
     }
+  };
+
+  const updateSubjectName = (subjectIndex: number, newName: string) => {
+    if (!semestersData[currentSemester]) {
+      setSemestersData({
+        ...semestersData,
+        [currentSemester]: { grades: [], customSubjects: {} }
+      });
+    }
+
+    const currentSemesterData = semestersData[currentSemester] || { grades: [], customSubjects: {} };
+    const newCustomSubjects = { ...currentSemesterData.customSubjects };
+    
+    if (newName.trim() === '') {
+      delete newCustomSubjects[subjectIndex];
+    } else {
+      newCustomSubjects[subjectIndex] = newName.trim();
+    }
+
+    setSemestersData({
+      ...semestersData,
+      [currentSemester]: {
+        ...currentSemesterData,
+        customSubjects: newCustomSubjects
+      }
+    });
   };
 
   const { sgpa, cgpa } = useMemo(() => {
@@ -145,10 +199,10 @@ export default function Dashboard() {
     
     Object.keys(semestersData).forEach(semKey => {
       const grades = semestersData[semKey];
-      if (grades && grades.length > 0 && semesterSubjects[semKey]) {
+      if (grades && grades.grades && grades.grades.length > 0 && semesterSubjects[semKey]) {
         const subjects = semesterSubjects[semKey];
         subjects.forEach((subject, index) => {
-            const grade = grades[index];
+            const grade = grades.grades[index];
             if (grade && grade.gradePoint) {
               const gradePoint = parseFloat(String(grade.gradePoint));
               if (!isNaN(gradePoint) && subject.credit > 0) {
@@ -286,6 +340,8 @@ export default function Dashboard() {
                 currentSemester={currentSemester}
                 resetAllGrades={resetAllGrades}
                 clearCurrentSemesterGrades={clearCurrentSemesterGrades}
+                customSubjects={currentCustomSubjects}
+                onSubjectNameChange={updateSubjectName}
             />
           </div>
 

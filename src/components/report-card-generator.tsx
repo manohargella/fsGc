@@ -89,7 +89,7 @@ export default function ReportCardGenerator({ semestersData, user }: ReportCardG
       const grades = semestersData[semKey];
       const subjects = semesterSubjects[semKey];
       
-      if (grades && grades.length > 0 && subjects) {
+      if (grades && grades.grades && grades.grades.length > 0 && subjects) {
         const semesterSubjects: Array<{
           name: string;
           credit: number;
@@ -101,7 +101,7 @@ export default function ReportCardGenerator({ semestersData, user }: ReportCardG
         let semesterTotalCredits = 0;
 
         subjects.forEach((subject, index) => {
-          const grade = grades[index];
+          const grade = grades.grades[index];
           if (grade && grade.gradePoint) {
             const gradePoint = parseFloat(String(grade.gradePoint));
             if (!isNaN(gradePoint)) {
@@ -111,7 +111,7 @@ export default function ReportCardGenerator({ semestersData, user }: ReportCardG
               cumulativeTotalCredits += subject.credit;
 
               semesterSubjects.push({
-                name: subject.name,
+                name: grades.customSubjects && grades.customSubjects[index] ? grades.customSubjects[index] : subject.name,
                 credit: subject.credit,
                 gradePoint: gradePoint.toFixed(2),
                 letterGrade: getLetterGrade(gradePoint)

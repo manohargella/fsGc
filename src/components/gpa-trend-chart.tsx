@@ -26,7 +26,7 @@ export default function GpaTrendChart({ semestersData }: GpaTrendChartProps) {
     
     semesters.forEach(semKey => {
       const grades = semestersData[semKey];
-      if (grades && grades.length > 0 && semesterSubjects[semKey]) {
+      if (grades && grades.grades && grades.grades.length > 0 && semesterSubjects[semKey]) {
         const subjects = semesterSubjects[semKey];
         
         // Calculate SGPA for this semester
@@ -34,7 +34,7 @@ export default function GpaTrendChart({ semestersData }: GpaTrendChartProps) {
         let semesterTotalCredits = 0;
         
         subjects.forEach((subject, index) => {
-          const grade = grades[index];
+          const grade = grades.grades[index];
           if (grade && grade.gradePoint) {
             const gradePoint = parseFloat(String(grade.gradePoint));
             if (!isNaN(gradePoint) && subject.credit > 0) {
@@ -48,7 +48,7 @@ export default function GpaTrendChart({ semestersData }: GpaTrendChartProps) {
         
         // Add to cumulative total
         subjects.forEach((subject, index) => {
-          const grade = grades[index];
+          const grade = grades.grades[index];
           if (grade && grade.gradePoint) {
             const gradePoint = parseFloat(String(grade.gradePoint));
             if (!isNaN(gradePoint) && subject.credit > 0) {

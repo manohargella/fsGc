@@ -57,8 +57,8 @@ export default function GradeDistributionChart({ semestersData }: GradeDistribut
     // Count grades across all semesters
     Object.keys(semestersData).forEach(semKey => {
       const grades = semestersData[semKey];
-      if (grades && grades.length > 0 && semesterSubjects[semKey]) {
-        grades.forEach((grade, index) => {
+      if (grades && grades.grades && grades.grades.length > 0 && semesterSubjects[semKey]) {
+        grades.grades.forEach((grade, index) => {
           if (grade && grade.gradePoint) {
             const gradePoint = parseFloat(String(grade.gradePoint));
             if (!isNaN(gradePoint)) {
@@ -95,8 +95,8 @@ export default function GradeDistributionChart({ semestersData }: GradeDistribut
     let totalPoints = 0;
     Object.keys(semestersData).forEach(semKey => {
       const grades = semestersData[semKey];
-      if (grades && grades.length > 0) {
-        grades.forEach(grade => {
+      if (grades && grades.grades && grades.grades.length > 0) {
+        grades.grades.forEach(grade => {
           if (grade && grade.gradePoint) {
             const gradePoint = parseFloat(String(grade.gradePoint));
             if (!isNaN(gradePoint)) {

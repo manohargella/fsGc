@@ -3,8 +3,17 @@ export interface Subject {
   credit: number;
 }
 
+export interface EditableSubject extends Subject {
+  isEditable: boolean;
+}
+
 export interface SemesterGrade {
   gradePoint: string;
 }
 
-export type AllSemesterGrades = Record<string, SemesterGrade[]>;
+export interface SemesterData {
+  grades: SemesterGrade[];
+  customSubjects?: Record<number, string>; // Maps subject index to custom name
+}
+
+export type AllSemesterGrades = Record<string, SemesterData>;
