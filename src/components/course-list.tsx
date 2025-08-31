@@ -81,122 +81,138 @@ export default function CourseList({ subjects, grades, onGradeChange, currentSem
   };
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Semester {currentSemester} Subjects</CardTitle>
-        <CardDescription>Enter grade points for each subject to calculate GPA. Use Enter to move to next field.</CardDescription>
+    <Card className="w-full">
+      <CardHeader className="px-3 sm:px-6 pb-4">
+        <CardTitle className="text-lg sm:text-xl">Semester {currentSemester} Subjects</CardTitle>
+        <CardDescription className="text-sm sm:text-base">
+          Enter grade points for each subject to calculate GPA. Use Enter to move to next field.
+        </CardDescription>
       </CardHeader>
-      <CardContent>
+      <CardContent className="px-3 sm:px-6">
         {subjects.length > 0 ? (
-          <div className="border rounded-md">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead className="w-[40%] px-2 md:px-4 text-xs md:text-sm">Subject Name</TableHead>
-                  <TableHead className="text-center px-2 md:px-4 text-xs md:text-sm">Credits</TableHead>
-                  <TableHead className="text-center px-2 md:px-4 text-xs md:text-sm">Grade Point</TableHead>
-                  <TableHead className="text-center px-2 md:px-4 text-xs md:text-sm">Letter Grade</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {subjects.map((subject, index) => {
-                    const gradeValue = grades[index]?.gradePoint ?? "";
-                    return (
-                        <TableRow key={subject.name}>
-                            <TableCell className="font-medium p-2 md:p-4 text-xs md:text-sm">
-                                {editingSubjectIndex === index ? (
-                                    <div className="flex items-center gap-2">
-                                        <Input
-                                            type="text"
-                                            className="flex-1"
-                                            value={editingSubjectName}
-                                            onChange={(e) => setEditingSubjectName(e.target.value)}
-                                            onBlur={() => saveSubjectName(index)}
-                                            onKeyPress={(event) => {
-                                                if (event.key === 'Enter') {
-                                                    event.preventDefault();
-                                                    saveSubjectName(index);
-                                                } else if (event.key === 'Escape') {
-                                                    event.preventDefault();
-                                                    cancelEditingSubject();
-                                                }
-                                            }}
-                                            autoFocus
-                                        />
-                                        <Button
-                                            variant="ghost"
-                                            size="sm"
-                                            onClick={() => saveSubjectName(index)}
-                                            className="h-8 w-8 p-0"
-                                        >
-                                            ✓
-                                        </Button>
-                                        <Button
-                                            variant="ghost"
-                                            size="sm"
-                                            onClick={cancelEditingSubject}
-                                            className="h-8 w-8 p-0"
-                                        >
-                                            ✕
-                                        </Button>
-                                    </div>
-                                ) : (
-                                    <div className="flex items-center gap-2">
-                                        <div className="flex-1">
-                                            <span className={subject.isEditable ? "text-blue-600 font-medium" : ""}>
-                                                {getDisplaySubjectName(subject, index)}
-                                            </span>
-                                            {subject.isEditable && (
-                                                <span className="ml-2 text-xs text-blue-500 bg-blue-50 dark:bg-blue-950 px-2 py-1 rounded-full">
-                                                    Elective
-                                                </span>
-                                            )}
-                                        </div>
-                                        {subject.isEditable && (
-                                            <Button
-                                                variant="ghost"
-                                                size="sm"
-                                                onClick={() => startEditingSubject(index, subject.name)}
-                                                className="h-6 w-6 p-0 opacity-60 hover:opacity-100"
-                                            >
-                                                <Edit2 className="h-3 w-3" />
-                                            </Button>
-                                        )}
-                                    </div>
-                                )}
-                            </TableCell>
-                            <TableCell className="text-center p-2 md:p-4 text-xs md:text-sm">{subject.credit}</TableCell>
-                            <TableCell className="w-[100px] md:w-[150px] p-2 md:p-4">
-                                <Input 
-                                    type="number" 
-                                    className="text-center w-full"
-                                    min="0"
-                                    max="10"
-                                    step="0.01"
-                                    data-index={index}
-                                    value={gradeValue}
-                                    onChange={(e) => {
-                                      const value = e.target.value;
-                                      // Allow decimal values and validate range
-                                      if (value === '' || (parseFloat(value) >= 0 && parseFloat(value) <= 10)) {
-                                        onGradeChange(index, value);
-                                      }
-                                    }}
-                                    onKeyPress={(event) => handleKeyPress(event, index)}
-                                    placeholder="-"
-                                />
-                            </TableCell>
-                            <TableCell className="text-center font-bold p-2 md:p-4 text-base md:text-xl">{getGradeLetter(parseFloat(String(gradeValue)))}</TableCell>
-                        </TableRow>
-                    );
-                })}
-              </TableBody>
-            </Table>
+          <div className="border rounded-lg overflow-hidden">
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow className="border-b">
+                    <TableHead className="w-[45%] sm:w-[40%] px-2 sm:px-3 md:px-4 py-3 text-xs sm:text-sm font-medium">
+                      Subject Name
+                    </TableHead>
+                    <TableHead className="text-center px-2 sm:px-3 md:px-4 py-3 text-xs sm:text-sm font-medium">
+                      Credits
+                    </TableHead>
+                    <TableHead className="text-center px-2 sm:px-3 md:px-4 py-3 text-xs sm:text-sm font-medium">
+                      Grade Point
+                    </TableHead>
+                    <TableHead className="text-center px-2 sm:px-3 md:px-4 py-3 text-xs sm:text-sm font-medium">
+                      Letter Grade
+                    </TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {subjects.map((subject, index) => {
+                      const gradeValue = grades[index]?.gradePoint ?? "";
+                      return (
+                          <TableRow key={subject.name} className="border-b hover:bg-muted/50">
+                              <TableCell className="font-medium p-2 sm:p-3 md:p-4 text-xs sm:text-sm">
+                                  {editingSubjectIndex === index ? (
+                                      <div className="flex items-center gap-2">
+                                          <Input
+                                              type="text"
+                                              className="flex-1 h-8 sm:h-9 text-xs sm:text-sm"
+                                              value={editingSubjectName}
+                                              onChange={(e) => setEditingSubjectName(e.target.value)}
+                                              onBlur={() => saveSubjectName(index)}
+                                              onKeyPress={(event) => {
+                                                  if (event.key === 'Enter') {
+                                                      event.preventDefault();
+                                                      saveSubjectName(index);
+                                                  } else if (event.key === 'Escape') {
+                                                      event.preventDefault();
+                                                      cancelEditingSubject();
+                                                  }
+                                              }}
+                                              autoFocus
+                                          />
+                                          <Button
+                                              variant="ghost"
+                                              size="sm"
+                                              onClick={() => saveSubjectName(index)}
+                                              className="h-8 w-8 p-0 flex-shrink-0"
+                                          >
+                                              ✓
+                                          </Button>
+                                          <Button
+                                              variant="ghost"
+                                              size="sm"
+                                              onClick={cancelEditingSubject}
+                                              className="h-8 w-8 p-0 flex-shrink-0"
+                                          >
+                                              ✕
+                                          </Button>
+                                      </div>
+                                  ) : (
+                                      <div className="flex items-center gap-2">
+                                          <div className="flex-1 min-w-0">
+                                              <span className={`block truncate ${subject.isEditable ? "text-blue-600 font-medium" : ""}`}>
+                                                  {getDisplaySubjectName(subject, index)}
+                                              </span>
+                                              {subject.isEditable && (
+                                                  <span className="inline-block mt-1 text-xs text-blue-500 bg-blue-50 dark:bg-blue-950 px-2 py-1 rounded-full">
+                                                      Elective
+                                                  </span>
+                                              )}
+                                          </div>
+                                          {subject.isEditable && (
+                                              <Button
+                                                  variant="ghost"
+                                                  size="sm"
+                                                  onClick={() => startEditingSubject(index, subject.name)}
+                                                  className="h-6 w-6 p-0 opacity-60 hover:opacity-100 flex-shrink-0"
+                                              >
+                                                  <Edit2 className="h-3 w-3" />
+                                              </Button>
+                                          )}
+                                      </div>
+                                  )}
+                              </TableCell>
+                              <TableCell className="text-center p-2 sm:p-3 md:p-4 text-xs sm:text-sm font-medium">
+                                {subject.credit}
+                              </TableCell>
+                              <TableCell className="w-[80px] sm:w-[100px] md:w-[150px] p-2 sm:p-3 md:p-4">
+                                  <Input 
+                                      type="number" 
+                                      className="text-center w-full h-8 sm:h-9 text-xs sm:text-sm"
+                                      min="0"
+                                      max="10"
+                                      step="0.01"
+                                      data-index={index}
+                                      value={gradeValue}
+                                      onChange={(e) => {
+                                        const value = e.target.value;
+                                        // Allow decimal values and validate range
+                                        if (value === '' || (parseFloat(value) >= 0 && parseFloat(value) <= 10)) {
+                                          onGradeChange(index, value);
+                                        }
+                                      }}
+                                      onKeyPress={(event) => handleKeyPress(event, index)}
+                                      placeholder="-"
+                                  />
+                              </TableCell>
+                              <TableCell className="text-center font-bold p-2 sm:p-3 md:p-4 text-sm sm:text-base md:text-xl">
+                                {getGradeLetter(parseFloat(String(gradeValue)))}
+                              </TableCell>
+                          </TableRow>
+                      );
+                  })}
+                </TableBody>
+              </Table>
+            </div>
           </div>
         ) : (
           <div className="flex flex-col items-center justify-center py-12 text-center border-2 border-dashed rounded-lg">
-            <h3 className="text-xl font-semibold">No Subjects Found</h3>
-            <p className="text-muted-foreground">
+            <h3 className="text-lg sm:text-xl font-semibold">No Subjects Found</h3>
+            <p className="text-muted-foreground text-sm sm:text-base">
               Select a semester to see subjects.
             </p>
           </div>
@@ -206,20 +222,20 @@ export default function CourseList({ subjects, grades, onGradeChange, currentSem
         <div className="flex flex-col sm:flex-row gap-3 mt-6">
           <AlertDialog>
             <AlertDialogTrigger asChild>
-              <Button variant="destructive" className="w-full sm:w-auto">
+              <Button variant="destructive" className="w-full sm:w-auto h-10 sm:h-9 text-sm">
                 Reset All Grades
               </Button>
             </AlertDialogTrigger>
-            <AlertDialogContent>
+            <AlertDialogContent className="max-w-[90vw] sm:max-w-md">
               <AlertDialogHeader>
                 <AlertDialogTitle>Reset All Grades</AlertDialogTitle>
                 <AlertDialogDescription>
                   This action will permanently clear all grades across all semesters. This action cannot be undone.
                 </AlertDialogDescription>
               </AlertDialogHeader>
-              <AlertDialogFooter>
-                <AlertDialogCancel>Cancel</AlertDialogCancel>
-                <AlertDialogAction onClick={resetAllGrades} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+              <AlertDialogFooter className="flex-col sm:flex-row gap-2">
+                <AlertDialogCancel className="w-full sm:w-auto">Cancel</AlertDialogCancel>
+                <AlertDialogAction onClick={resetAllGrades} className="w-full sm:w-auto bg-destructive text-destructive-foreground hover:bg-destructive/90">
                   Reset All
                 </AlertDialogAction>
               </AlertDialogFooter>
@@ -228,20 +244,20 @@ export default function CourseList({ subjects, grades, onGradeChange, currentSem
 
           <AlertDialog>
             <AlertDialogTrigger asChild>
-              <Button variant="outline" className="w-full sm:w-auto">
+              <Button variant="outline" className="w-full sm:w-auto h-10 sm:h-9 text-sm">
                 Clear Semester {currentSemester}
               </Button>
             </AlertDialogTrigger>
-            <AlertDialogContent>
+            <AlertDialogContent className="max-w-[90vw] sm:max-w-md">
               <AlertDialogHeader>
                 <AlertDialogTitle>Clear Semester {currentSemester} Grades</AlertDialogTitle>
                 <AlertDialogDescription>
                   This action will clear all grades for semester {currentSemester} only. This action cannot be undone.
                 </AlertDialogDescription>
               </AlertDialogHeader>
-              <AlertDialogFooter>
-                <AlertDialogCancel>Cancel</AlertDialogCancel>
-                <AlertDialogAction onClick={clearCurrentSemesterGrades} className="bg-orange-600 text-white hover:bg-orange-700">
+              <AlertDialogFooter className="flex-col sm:flex-row gap-2">
+                <AlertDialogCancel className="w-full sm:w-auto">Cancel</AlertDialogCancel>
+                <AlertDialogAction onClick={clearCurrentSemesterGrades} className="w-full sm:w-auto bg-orange-600 text-white hover:bg-orange-700">
                   Clear Semester
                 </AlertDialogAction>
               </AlertDialogFooter>
