@@ -22,6 +22,15 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import { getGradeLetter } from "@/lib/gpa";
 import type { Subject, SemesterGrade, EditableSubject } from "@/types";
 import { useState } from "react";
@@ -41,6 +50,7 @@ type CourseListProps = {
 export default function CourseList({ subjects, grades, onGradeChange, currentSemester, resetAllGrades, clearCurrentSemesterGrades, customSubjects, onSubjectNameChange }: CourseListProps) {
   const [editingSubjectIndex, setEditingSubjectIndex] = useState<number | null>(null);
   const [editingSubjectName, setEditingSubjectName] = useState<string>("");
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
 
   const handleKeyPress = (event: React.KeyboardEvent<HTMLInputElement>, currentIndex: number) => {
     if (event.key === 'Enter') {
@@ -60,17 +70,22 @@ export default function CourseList({ subjects, grades, onGradeChange, currentSem
   const startEditingSubject = (subjectIndex: number, currentName: string) => {
     setEditingSubjectIndex(subjectIndex);
     setEditingSubjectName(customSubjects[subjectIndex] || currentName);
+    setIsEditDialogOpen(true);
   };
 
-  const saveSubjectName = (subjectIndex: number) => {
-    onSubjectNameChange(subjectIndex, editingSubjectName);
-    setEditingSubjectIndex(null);
-    setEditingSubjectName("");
+  const saveSubjectName = () => {
+    if (editingSubjectIndex !== null) {
+      onSubjectNameChange(editingSubjectIndex, editingSubjectName);
+      setEditingSubjectIndex(null);
+      setEditingSubjectName("");
+      setIsEditDialogOpen(false);
+    }
   };
 
   const cancelEditingSubject = () => {
     setEditingSubjectIndex(null);
     setEditingSubjectName("");
+    setIsEditDialogOpen(false);
   };
 
   const getDisplaySubjectName = (subject: EditableSubject, index: number) => {
@@ -104,66 +119,28 @@ export default function CourseList({ subjects, grades, onGradeChange, currentSem
                     return (
                         <TableRow key={subject.name}>
                             <TableCell className="font-medium p-2 text-sm">
-                                {editingSubjectIndex === index ? (
-                                    <div className="flex items-center gap-2">
-                                        <Input
-                                            type="text"
-                                            className="flex-1"
-                                            value={editingSubjectName}
-                                            onChange={(e) => setEditingSubjectName(e.target.value)}
-                                            onBlur={() => saveSubjectName(index)}
-                                            onKeyPress={(event) => {
-                                                if (event.key === 'Enter') {
-                                                    event.preventDefault();
-                                                    saveSubjectName(index);
-                                                } else if (event.key === 'Escape') {
-                                                    event.preventDefault();
-                                                    cancelEditingSubject();
-                                                }
-                                            }}
-                                            autoFocus
-                                        />
-                                        <Button
-                                            variant="ghost"
-                                            size="sm"
-                                            onClick={() => saveSubjectName(index)}
-                                            className="h-8 w-8 p-0"
-                                        >
-                                            ✓
-                                        </Button>
-                                        <Button
-                                            variant="ghost"
-                                            size="sm"
-                                            onClick={cancelEditingSubject}
-                                            className="h-8 w-8 p-0"
-                                        >
-                                            ✕
-                                        </Button>
-                                    </div>
-                                ) : (
-                                    <div className="flex items-center gap-2">
-                                        <div className="flex-1">
-                                            <span className={subject.isEditable ? "text-blue-600 font-medium" : ""}>
-                                                {getDisplaySubjectName(subject, index)}
-                                            </span>
-                                            {subject.isEditable && (
-                                                <span className="ml-2 text-xs text-blue-500 bg-blue-50 dark:bg-blue-950 px-2 py-1 rounded-full">
-                                                    Elective
-                                                </span>
-                                            )}
-                                        </div>
+                                <div className="flex items-center gap-2">
+                                    <div className="flex-1">
+                                        <span className={subject.isEditable ? "text-blue-600 font-medium" : ""}>
+                                            {getDisplaySubjectName(subject, index)}
+                                        </span>
                                         {subject.isEditable && (
-                                            <Button
-                                                variant="ghost"
-                                                size="sm"
-                                                onClick={() => startEditingSubject(index, subject.name)}
-                                                className="h-6 w-6 p-0 opacity-60 hover:opacity-100"
-                                            >
-                                                <Edit2 className="h-3 w-3" />
-                                            </Button>
+                                            <span className="ml-2 text-xs text-blue-500 bg-blue-50 dark:bg-blue-950 px-2 py-1 rounded-full">
+                                                Elective
+                                            </span>
                                         )}
                                     </div>
-                                )}
+                                    {subject.isEditable && (
+                                        <Button
+                                            variant="ghost"
+                                            size="sm"
+                                            onClick={() => startEditingSubject(index, subject.name)}
+                                            className="h-6 w-6 p-0 opacity-60 hover:opacity-100"
+                                        >
+                                            <Edit2 className="h-3 w-3" />
+                                        </Button>
+                                    )}
+                                </div>
                             </TableCell>
                             <TableCell className="text-center p-2 text-sm">{subject.credit}</TableCell>
                             <TableCell className="w-[100px] p-2">
@@ -248,6 +225,41 @@ export default function CourseList({ subjects, grades, onGradeChange, currentSem
             </AlertDialogContent>
           </AlertDialog>
         </div>
+
+        {/* Edit Subject Name Dialog */}
+        <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+          <DialogContent className="sm:max-w-md">
+            <DialogHeader>
+              <DialogTitle>Edit Subject Name</DialogTitle>
+              <DialogDescription>
+                Enter a new name for this elective subject.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="py-4">
+              <Input
+                type="text"
+                placeholder="Enter subject name"
+                value={editingSubjectName}
+                onChange={(e) => setEditingSubjectName(e.target.value)}
+                onKeyPress={(event) => {
+                  if (event.key === 'Enter') {
+                    event.preventDefault();
+                    saveSubjectName();
+                  }
+                }}
+                autoFocus
+              />
+            </div>
+            <DialogFooter>
+              <Button variant="outline" onClick={cancelEditingSubject}>
+                Cancel
+              </Button>
+              <Button onClick={saveSubjectName}>
+                Save Changes
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </CardContent>
     </Card>
   );
