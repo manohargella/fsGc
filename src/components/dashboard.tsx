@@ -357,7 +357,7 @@ export default function Dashboard() {
       <footer className="py-6 text-center text-sm text-muted-foreground">
         Build by{" "}
         <a
-          href="https://manohar.tech"
+          href="https://manohargella.vercel.app/"
           target="_blank"
           rel="noopener noreferrer"
           className="font-semibold text-primary hover:underline"
