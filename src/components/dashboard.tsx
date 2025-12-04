@@ -355,7 +355,7 @@ export default function Dashboard() {
         </div>
       </main>
       <footer className="py-6 text-center text-sm text-muted-foreground">
-        Build by{" "}
+        Built by{" "}
         <a
           href="https://manohargella.vercel.app/"
           target="_blank"
