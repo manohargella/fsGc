@@ -71,7 +71,7 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center bg-gradient-to-br from-gray-900 via-indigo-900 to-blue-900 animate-gradient-x p-4">
+    <div className="relative flex min-h-screen flex-col items-center justify-center overflow-hidden bg-gradient-to-br from-gray-900 via-indigo-900 to-blue-900 animate-gradient-x p-4">
       <style>{`
         @keyframes gradient-x {
           0%, 100% { background-position: 0% 50%; }
@@ -82,23 +82,45 @@ export default function LoginPage() {
           animation: gradient-x 8s ease-in-out infinite;
         }
       `}</style>
+
+      {/* Floating background orbs */}
+      <div className="pointer-events-none absolute inset-0">
+        <div className="absolute left-[15%] top-[20%] h-32 w-32 rounded-full bg-blue-500/20 blur-3xl animate-float" />
+        <div className="absolute right-[20%] top-[60%] h-40 w-40 rounded-full bg-indigo-500/25 blur-3xl animate-float-slow" />
+        <div className="absolute bottom-[25%] left-[30%] h-24 w-24 rounded-full bg-cyan-400/15 blur-2xl animate-float" style={{ animationDelay: '-2s' }} />
+        <div className="absolute right-[35%] top-[15%] h-20 w-20 rounded-full bg-blue-300/20 blur-2xl animate-float-slow" style={{ animationDelay: '-4s' }} />
+      </div>
+
       <Card
-        className={`w-full max-w-sm border-0 shadow-2xl rounded-3xl bg-black/40 backdrop-blur-md transition-all duration-700 ${showCard ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'} `}
+        className={`relative z-10 w-full max-w-sm border-0 shadow-2xl rounded-3xl bg-black/40 backdrop-blur-md transition-all duration-700 ${showCard ? 'opacity-100 translate-y-0 scale-100' : 'opacity-0 translate-y-8 scale-95'} `}
         style={{ boxShadow: '0 8px 32px 0 rgba(49, 46, 129, 0.28)' }}
       >
         <CardHeader className="text-center">
           <div className="flex flex-col items-center mb-2">
-            <span className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-indigo-900/80 shadow-lg mb-2">
+            <span
+              className={`inline-flex items-center justify-center w-16 h-16 rounded-full bg-indigo-900/80 shadow-lg mb-2 ${showCard ? 'animate-glow-pulse' : ''}`}
+              style={{ boxShadow: showCard ? '0 0 24px rgba(147, 197, 253, 0.4)' : undefined }}
+            >
               <span className="text-4xl font-extrabold text-blue-300">G</span>
             </span>
-            <CardTitle className="text-2xl font-bold tracking-tight text-blue-100">GradeCal</CardTitle>
+            <CardTitle
+              className={`text-2xl font-bold tracking-tight text-blue-100 ${showCard ? 'animate-fade-in-up' : 'opacity-0'}`}
+              style={{ animationDelay: showCard ? '0.15s' : undefined, animationFillMode: 'forwards' }}
+            >
+              GradeCal
+            </CardTitle>
           </div>
-          <CardDescription className="text-sm text-blue-200/80">Sign in to continue</CardDescription>
+          <CardDescription
+            className={`text-sm text-blue-200/80 ${showCard ? 'animate-fade-in-up' : 'opacity-0'}`}
+            style={{ animationDelay: showCard ? '0.25s' : undefined, animationFillMode: 'forwards' }}
+          >
+            Sign in to continue
+          </CardDescription>
         </CardHeader>
         <CardContent>
           <Button
             onClick={handleSignIn}
-            className="w-full py-5 font-semibold text-base bg-white/90 hover:bg-blue-100 text-gray-900 border-0 shadow-md hover:shadow-lg transition-all flex items-center justify-center gap-2"
+            className="w-full py-5 font-semibold text-base bg-white/90 hover:bg-blue-100 text-gray-900 border-0 shadow-md hover:shadow-lg hover:scale-[1.02] transition-all duration-300 flex items-center justify-center gap-2 active:scale-[0.98]"
             style={{ boxShadow: '0 2px 8px 0 rgba(49, 46, 129, 0.18)' }}
           >
             <GoogleIcon />
@@ -106,7 +128,10 @@ export default function LoginPage() {
           </Button>
         </CardContent>
       </Card>
-      <div className="mt-8 text-xs text-blue-200 text-center drop-shadow-sm">
+      <div
+        className={`relative z-10 mt-8 text-xs text-blue-200 text-center drop-shadow-sm ${showCard ? 'animate-fade-in' : 'opacity-0'}`}
+        style={{ animationDelay: showCard ? '0.5s' : undefined, animationFillMode: 'forwards' }}
+      >
         Built by Manohar Gella &mdash; Your GPA, simplified.
       </div>
     </div>
