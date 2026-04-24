@@ -100,11 +100,16 @@ export default function Dashboard() {
 
   useEffect(() => {
     if (user && isDataLoaded && db) {
-      const docRef = doc(db, "users", user.uid);
-      setDoc(docRef, { semestersData }).catch(error => {
+      try {
+        const docRef = doc(db, "users", user.uid);
+        setDoc(docRef, { semestersData }).catch(error => {
+          console.error("Error saving data:", error);
+          toast({ title: "Error", description: "Could not save changes.", variant: "destructive" });
+        });
+      } catch (error) {
         console.error("Error saving data:", error);
         toast({ title: "Error", description: "Could not save changes.", variant: "destructive" });
-      });
+      }
     }
   }, [semestersData, user, isDataLoaded, toast]);
 
@@ -127,7 +132,8 @@ export default function Dashboard() {
     }
 
     const currentSemesterData = semestersData[currentSemester] || { grades: [], customSubjects: {} };
-    const newGrades = [...(currentSemesterData.grades || currentSubjects.map(() => ({ gradePoint: "" })))];
+    const existingGrades = currentSemesterData.grades || [];
+    const newGrades = currentSubjects.map((_, index) => existingGrades[index] || { gradePoint: "" });
     newGrades[subjectIndex] = { gradePoint: gpVal };
 
     setSemestersData({
