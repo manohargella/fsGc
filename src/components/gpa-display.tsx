@@ -4,7 +4,7 @@ type GpaDisplayProps = {
   sgpa: number;
   cgpa: number;
 };
-
+// testing
 export default function GpaDisplay({ sgpa, cgpa }: GpaDisplayProps) {
   return (
     <Card>
