@@ -151,16 +151,16 @@ export default function CourseList({ subjects, grades, onGradeChange, currentSem
                                     className="text-center w-full"
                                     min="0"
                                     max="10"
-                                    step="0.01"
+                                    step="1"
                                     data-index={index}
                                     value={gradeValue}
                                     onChange={(e) => {
                                       const value = e.target.value;
-                                      // Allow decimal values and validate range
-                                      if (value === '' || (parseFloat(value) >= 0 && parseFloat(value) <= 10)) {
+                                      if (value === '' || (/^\d+$/.test(value) && parseInt(value, 10) >= 0 && parseInt(value, 10) <= 10)) {
                                         onGradeChange(index, value);
                                       }
                                     }}
+                                    onWheel={(e) => e.currentTarget.blur()}
                                     onKeyPress={(event) => handleKeyPress(event, index)}
                                     placeholder="-"
                                 />
