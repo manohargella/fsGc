@@ -8,7 +8,7 @@ type GpaDisplayProps = {
 export default function GpaDisplay({ sgpa, cgpa }: GpaDisplayProps) {
   return (
     <Card>
-      <CardHeader>f
+      <CardHeader>
         <CardTitle>GPA Summary</CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
