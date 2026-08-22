@@ -8,7 +8,7 @@ import { FileText, Download, Loader2 } from "lucide-react";
 import jsPDF from "jspdf";
 import html2canvas from "html2canvas";
 import type { AllSemesterGrades } from "@/types";
-import { semesterSubjects } from "@/lib/gpa";
+import { getGradeLetter, semesterSubjects } from "@/lib/gpa";
 
 interface ReportCardGeneratorProps {
   semestersData: AllSemesterGrades;
@@ -35,36 +35,17 @@ interface GradeDistribution {
 }
 
 const GRADE_COLORS = {
+  O: '#059669',
   'A+': '#10B981',
-  'A': '#34D399',
-  'A-': '#6EE7B7',
+  A: '#34D399',
   'B+': '#3B82F6',
-  'B': '#60A5FA',
-  'B-': '#93C5FD',
-  'C+': '#F59E0B',
-  'C': '#FBBF24',
-  'C-': '#FCD34D',
-  'D+': '#EF4444',
-  'D': '#F87171',
-  'D-': '#FCA5A5',
-  'F': '#DC2626',
+  B: '#60A5FA',
+  C: '#FBBF24',
+  P: '#F59E0B',
+  F: '#DC2626',
 };
 
-const getLetterGrade = (gradePoint: number): string => {
-  if (gradePoint >= 9.5) return 'A+';
-  if (gradePoint >= 9.0) return 'A';
-  if (gradePoint >= 8.5) return 'A-';
-  if (gradePoint >= 8.0) return 'B+';
-  if (gradePoint >= 7.5) return 'B';
-  if (gradePoint >= 7.0) return 'B-';
-  if (gradePoint >= 6.5) return 'C+';
-  if (gradePoint >= 6.0) return 'C';
-  if (gradePoint >= 5.5) return 'C-';
-  if (gradePoint >= 5.0) return 'D+';
-  if (gradePoint >= 4.5) return 'D';
-  if (gradePoint >= 4.0) return 'D-';
-  return 'F';
-};
+const GRADE_ORDER = ['O', 'A+', 'A', 'B+', 'B', 'C', 'P', 'F'];
 
 export default function ReportCardGenerator({ semestersData, user }: ReportCardGeneratorProps) {
   const [selectedSemesters, setSelectedSemesters] = useState<string>("all");
@@ -114,7 +95,7 @@ export default function ReportCardGenerator({ semestersData, user }: ReportCardG
                 name: grades.customSubjects && grades.customSubjects[index] ? grades.customSubjects[index] : subject.name,
                 credit: subject.credit,
                 gradePoint: gradePoint.toFixed(2),
-                letterGrade: getLetterGrade(gradePoint)
+                letterGrade: getGradeLetter(gradePoint)
               });
             }
           }
@@ -156,8 +137,7 @@ export default function ReportCardGenerator({ semestersData, user }: ReportCardG
         color: GRADE_COLORS[grade as keyof typeof GRADE_COLORS] || '#6B7280'
       }))
       .sort((a, b) => {
-        const gradeOrder = ['A+', 'A', 'A-', 'B+', 'B', 'B-', 'C+', 'C', 'C-', 'D+', 'D', 'D-', 'F'];
-        return gradeOrder.indexOf(a.grade) - gradeOrder.indexOf(b.grade);
+        return GRADE_ORDER.indexOf(a.grade) - GRADE_ORDER.indexOf(b.grade);
       });
   }, [reportData]);
 
@@ -317,9 +297,9 @@ export default function ReportCardGenerator({ semestersData, user }: ReportCardG
             </div>
             <div style="text-align: center; padding: 15px; background-color: #f3f4f6; border-radius: 8px;">
               <div style="font-size: 24px; font-weight: bold; color: #1e40af;">
-                ${gradeDistribution.filter(g => g.grade.startsWith('A')).reduce((sum, g) => sum + g.count, 0)}
+                ${gradeDistribution.filter(g => ['O', 'A+', 'A'].includes(g.grade)).reduce((sum, g) => sum + g.count, 0)}
               </div>
-              <div style="font-size: 12px; color: #6b7280;">A Grades</div>
+              <div style="font-size: 12px; color: #6b7280;">O/A Grades</div>
             </div>
           </div>
         </div>

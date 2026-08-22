@@ -4,7 +4,7 @@ import React, { useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip } from "recharts";
 import type { AllSemesterGrades } from "@/types";
-import { semesterSubjects } from "@/lib/gpa";
+import { getGradeLetter, semesterSubjects } from "@/lib/gpa";
 
 interface GradeDistributionChartProps {
   semestersData: AllSemesterGrades;
@@ -18,36 +18,17 @@ interface GradeCount {
 }
 
 const GRADE_COLORS = {
-  'A+': '#10B981', // Green
-  'A': '#34D399',
-  'A-': '#6EE7B7',
-  'B+': '#3B82F6', // Blue
-  'B': '#60A5FA',
-  'B-': '#93C5FD',
-  'C+': '#F59E0B', // Orange
-  'C': '#FBBF24',
-  'C-': '#FCD34D',
-  'D+': '#EF4444', // Red
-  'D': '#F87171',
-  'D-': '#FCA5A5',
-  'F': '#DC2626',  // Dark Red
+  O: '#059669',
+  'A+': '#10B981',
+  A: '#34D399',
+  'B+': '#3B82F6',
+  B: '#60A5FA',
+  C: '#FBBF24',
+  P: '#F59E0B',
+  F: '#DC2626',
 };
 
-const getLetterGrade = (gradePoint: number): string => {
-  if (gradePoint >= 9.5) return 'A+';
-  if (gradePoint >= 9.0) return 'A';
-  if (gradePoint >= 8.5) return 'A-';
-  if (gradePoint >= 8.0) return 'B+';
-  if (gradePoint >= 7.5) return 'B';
-  if (gradePoint >= 7.0) return 'B-';
-  if (gradePoint >= 6.5) return 'C+';
-  if (gradePoint >= 6.0) return 'C';
-  if (gradePoint >= 5.5) return 'C-';
-  if (gradePoint >= 5.0) return 'D+';
-  if (gradePoint >= 4.5) return 'D';
-  if (gradePoint >= 4.0) return 'D-';
-  return 'F';
-};
+const GRADE_ORDER = ['O', 'A+', 'A', 'B+', 'B', 'C', 'P', 'F'];
 
 export default function GradeDistributionChart({ semestersData }: GradeDistributionChartProps) {
   const gradeDistribution = useMemo((): GradeCount[] => {
@@ -62,7 +43,8 @@ export default function GradeDistributionChart({ semestersData }: GradeDistribut
           if (grade && grade.gradePoint) {
             const gradePoint = parseFloat(String(grade.gradePoint));
             if (!isNaN(gradePoint)) {
-              const letterGrade = getLetterGrade(gradePoint);
+              const letterGrade = getGradeLetter(gradePoint);
+              if (letterGrade === "-") return;
               gradeCounts[letterGrade] = (gradeCounts[letterGrade] || 0) + 1;
               totalGrades++;
             }
@@ -81,8 +63,7 @@ export default function GradeDistributionChart({ semestersData }: GradeDistribut
       }))
       .sort((a, b) => {
         // Sort by grade quality (A+ first, F last)
-        const gradeOrder = ['A+', 'A', 'A-', 'B+', 'B', 'B-', 'C+', 'C', 'C-', 'D+', 'D', 'D-', 'F'];
-        return gradeOrder.indexOf(a.name) - gradeOrder.indexOf(b.name);
+        return GRADE_ORDER.indexOf(a.name) - GRADE_ORDER.indexOf(b.name);
       });
 
     return distribution;
@@ -215,17 +196,16 @@ export default function GradeDistributionChart({ semestersData }: GradeDistribut
               <h4 className="text-sm font-medium text-foreground mb-2">Performance Summary</h4>
               <div className="space-y-2">
                 {(() => {
-                  const aGrades = gradeDistribution.filter(g => g.name.startsWith('A')).reduce((sum, g) => sum + g.value, 0);
-                  const bGrades = gradeDistribution.filter(g => g.name.startsWith('B')).reduce((sum, g) => sum + g.value, 0);
-                  const cGrades = gradeDistribution.filter(g => g.name.startsWith('C')).reduce((sum, g) => sum + g.value, 0);
-                  const dGrades = gradeDistribution.filter(g => g.name.startsWith('D')).reduce((sum, g) => sum + g.value, 0);
-                  const fGrades = gradeDistribution.filter(g => g.name === 'F').reduce((sum, g) => sum + g.value, 0);
+                  const oAGrades = gradeDistribution.filter(g => ['O', 'A+', 'A'].includes(g.name)).reduce((sum, g) => sum + g.value, 0);
+                  const bGrades = gradeDistribution.filter(g => ['B+', 'B'].includes(g.name)).reduce((sum, g) => sum + g.value, 0);
+                  const cGrades = gradeDistribution.filter(g => g.name === 'C').reduce((sum, g) => sum + g.value, 0);
+                  const pFGrades = gradeDistribution.filter(g => ['P', 'F'].includes(g.name)).reduce((sum, g) => sum + g.value, 0);
 
                   return (
                     <div className="grid grid-cols-2 gap-2 text-xs">
                       <div className="flex justify-between">
-                        <span className="text-muted-foreground">A Grades:</span>
-                        <span className="text-green-500 font-medium">{aGrades}</span>
+                        <span className="text-muted-foreground">O/A Grades:</span>
+                        <span className="text-green-500 font-medium">{oAGrades}</span>
                       </div>
                       <div className="flex justify-between">
                         <span className="text-muted-foreground">B Grades:</span>
@@ -236,8 +216,8 @@ export default function GradeDistributionChart({ semestersData }: GradeDistribut
                         <span className="text-yellow-500 font-medium">{cGrades}</span>
                       </div>
                       <div className="flex justify-between">
-                        <span className="text-muted-foreground">D/F Grades:</span>
-                        <span className="text-red-500 font-medium">{dGrades + fGrades}</span>
+                        <span className="text-muted-foreground">P/F Grades:</span>
+                        <span className="text-red-500 font-medium">{pFGrades}</span>
                       </div>
                     </div>
                   );
