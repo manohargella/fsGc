@@ -4,9 +4,8 @@ import React, { useState, useMemo } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { FileText, Download, Loader2 } from "lucide-react";
+import { FileText, Loader2 } from "lucide-react";
 import jsPDF from "jspdf";
-import html2canvas from "html2canvas";
 import type { AllSemesterGrades } from "@/types";
 import { getGradeLetter, semesterSubjects } from "@/lib/gpa";
 
@@ -143,257 +142,363 @@ export default function ReportCardGenerator({ semestersData, user }: ReportCardG
 
   const generatePDF = async () => {
     setIsGenerating(true);
-    
+
     try {
-      // Create a temporary div for the report card
-      const reportCardDiv = document.createElement('div');
-      reportCardDiv.style.position = 'absolute';
-      reportCardDiv.style.left = '-9999px';
-      reportCardDiv.style.top = '0';
-      reportCardDiv.style.width = '800px';
-      reportCardDiv.style.backgroundColor = 'white';
-      reportCardDiv.style.padding = '40px';
-      reportCardDiv.style.fontFamily = 'Arial, sans-serif';
-      reportCardDiv.style.color = 'black';
-      
-      // Generate the HTML content with charts
-      reportCardDiv.innerHTML = `
-        <div style="text-align: center; margin-bottom: 30px;">
-          <div style="font-size: 28px; font-weight: bold; color: #1e40af; margin-bottom: 5px;">
-            Manohar Labs
-          </div>
-          <div style="font-size: 16px; color: #6b7280; margin-bottom: 20px;">
-            Academic Excellence Report
-          </div>
-          <div style="border-bottom: 2px solid #1e40af; width: 200px; margin: 0 auto;"></div>
-        </div>
-        
-        <div style="margin-bottom: 30px;">
-          <div style="display: flex; justify-content: space-between; margin-bottom: 20px;">
-            <div>
-              <strong>Student Name:</strong> ${user?.displayName || 'N/A'}
-            </div>
-            <div>
-              <strong>Date:</strong> ${new Date().toLocaleDateString()}
-            </div>
-          </div>
-          <div style="display: flex; justify-content: space-between;">
-            <div>
-              <strong>Email:</strong> ${user?.email || 'N/A'}
-            </div>
-            <div>
-              <strong>Report Period:</strong> ${selectedSemesters === "all" ? "All Semesters" : `First ${selectedSemesters} Semesters`}
-            </div>
-          </div>
-        </div>
+      const pdf = new jsPDF("p", "mm", "a4");
+      const pageWidth = pdf.internal.pageSize.getWidth();
+      const pageHeight = pdf.internal.pageSize.getHeight();
+      const margin = 16;
+      const contentWidth = pageWidth - margin * 2;
+      const footerReserve = 18;
+      const headerHeight = 24;
 
-        <!-- Performance Analysis Section -->
-        <div style="margin-bottom: 40px; page-break-inside: avoid;">
-          <h2 style="color: #1e40af; border-bottom: 2px solid #1e40af; padding-bottom: 10px; margin-bottom: 20px;">
-            Performance Analysis
-          </h2>
-          
-          <div style="display: flex; gap: 20px; margin-bottom: 30px;">
-            <!-- GPA Trend Chart -->
-            <div style="flex: 1; border: 1px solid #e5e7eb; padding: 15px; border-radius: 8px;">
-              <h3 style="margin: 0 0 15px 0; color: #374151; font-size: 16px;">GPA Trend Analysis</h3>
-              <div style="height: 200px; position: relative;">
-                <svg width="100%" height="100%" viewBox="0 0 300 200">
-                  ${reportData.length > 1 ? `
-                    <defs>
-                      <linearGradient id="lineGradient" x1="0%" y1="0%" x2="0%" y2="100%">
-                        <stop offset="0%" style="stop-color:#3b82f6;stop-opacity:1" />
-                        <stop offset="100%" style="stop-color:#1e40af;stop-opacity:0.3" />
-                      </linearGradient>
-                    </defs>
-                    <rect width="100%" height="100%" fill="url(#lineGradient)" opacity="0.1"/>
-                    <polyline 
-                      points="${reportData.map((sem, index) => {
-                        const x = (index / (reportData.length - 1)) * 280 + 10;
-                        const y = 190 - (sem.cgpa / 10) * 180;
-                        return `${x},${y}`;
-                      }).join(' ')}"
-                      fill="none" 
-                      stroke="#1e40af" 
-                      stroke-width="3"
-                    />
-                    ${reportData.map((sem, index) => {
-                      const x = (index / (reportData.length - 1)) * 280 + 10;
-                      const y = 190 - (sem.cgpa / 10) * 180;
-                      return `<circle cx="${x}" cy="${y}" r="4" fill="#1e40af"/>`;
-                    }).join('')}
-                  ` : '<text x="150" y="100" text-anchor="middle" fill="#6b7280">Insufficient data for trend</text>'}
-                </svg>
-                <div style="position: absolute; bottom: 0; left: 0; right: 0; display: flex; justify-content: space-between; font-size: 10px; color: #6b7280;">
-                  ${reportData.map(sem => `<span>${sem.semester.split(' ')[1]}</span>`).join('')}
-                </div>
-              </div>
-            </div>
+      const navy = { r: 15, g: 39, b: 68 };
+      const gold = { r: 184, g: 148, b: 79 };
+      const slate = { r: 71, g: 85, b: 105 };
+      const muted = { r: 148, g: 163, b: 184 };
+      const light = { r: 248, g: 250, b: 252 };
+      const rowAlt = { r: 241, g: 245, b: 249 };
+      const line = { r: 226, g: 232, b: 240 };
 
-            <!-- Grade Distribution Pie Chart -->
-            <div style="flex: 1; border: 1px solid #e5e7eb; padding: 15px; border-radius: 8px;">
-              <h3 style="margin: 0 0 15px 0; color: #374151; font-size: 16px;">Grade Distribution</h3>
-              <div style="height: 200px; position: relative;">
-                ${gradeDistribution.length > 0 ? `
-                  <svg width="100%" height="100%" viewBox="0 0 200 200">
-                    ${gradeDistribution.map((grade, index) => {
-                      const total = gradeDistribution.reduce((sum, g) => sum + g.count, 0);
-                      const percentage = (grade.count / total) * 100;
-                      const radius = 60;
-                      const centerX = 100;
-                      const centerY = 100;
-                      
-                      let startAngle = 0;
-                      for (let i = 0; i < index; i++) {
-                        const prevGrade = gradeDistribution[i];
-                        const prevPercentage = (prevGrade.count / total) * 100;
-                        startAngle += (prevPercentage / 100) * 2 * Math.PI;
-                      }
-                      
-                      const endAngle = startAngle + (percentage / 100) * 2 * Math.PI;
-                      const x1 = centerX + radius * Math.cos(startAngle);
-                      const y1 = centerY + radius * Math.sin(startAngle);
-                      const x2 = centerX + radius * Math.cos(endAngle);
-                      const y2 = centerY + radius * Math.sin(endAngle);
-                      
-                      const largeArcFlag = percentage > 50 ? 1 : 0;
-                      
-                      return `<path d="M ${centerX} ${centerY} L ${x1} ${y1} A ${radius} ${radius} 0 ${largeArcFlag} 1 ${x2} ${y2} Z" fill="${grade.color}"/>`;
-                    }).join('')}
-                    <circle cx="100" cy="100" r="30" fill="white"/>
-                  </svg>
-                  <div style="position: absolute; bottom: 0; left: 0; right: 0; font-size: 10px;">
-                    ${gradeDistribution.map(grade => `
-                      <div style="display: flex; align-items: center; margin-bottom: 2px;">
-                        <div style="width: 10px; height: 10px; background-color: ${grade.color}; margin-right: 5px; border-radius: 2px;"></div>
-                        <span>${grade.grade}: ${grade.count} (${grade.percentage.toFixed(1)}%)</span>
-                      </div>
-                    `).join('')}
-                  </div>
-                ` : '<text x="100" y="100" text-anchor="middle" fill="#6b7280">No grade data</text>'}
-              </div>
-            </div>
-          </div>
-
-          <!-- Summary Statistics -->
-          <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; margin-top: 20px;">
-            <div style="text-align: center; padding: 15px; background-color: #f3f4f6; border-radius: 8px;">
-              <div style="font-size: 24px; font-weight: bold; color: #1e40af;">
-                ${reportData.length}
-              </div>
-              <div style="font-size: 12px; color: #6b7280;">Semesters</div>
-            </div>
-            <div style="text-align: center; padding: 15px; background-color: #f3f4f6; border-radius: 8px;">
-              <div style="font-size: 24px; font-weight: bold; color: #1e40af;">
-                ${reportData.reduce((sum, sem) => sum + sem.subjects.length, 0)}
-              </div>
-              <div style="font-size: 12px; color: #6b7280;">Total Subjects</div>
-            </div>
-            <div style="text-align: center; padding: 15px; background-color: #f3f4f6; border-radius: 8px;">
-              <div style="font-size: 24px; font-weight: bold; color: #1e40af;">
-                ${reportData[reportData.length - 1]?.cgpa.toFixed(2) || '0.00'}
-              </div>
-              <div style="font-size: 12px; color: #6b7280;">Current CGPA</div>
-            </div>
-            <div style="text-align: center; padding: 15px; background-color: #f3f4f6; border-radius: 8px;">
-              <div style="font-size: 24px; font-weight: bold; color: #1e40af;">
-                ${gradeDistribution.filter(g => ['O', 'A+', 'A'].includes(g.grade)).reduce((sum, g) => sum + g.count, 0)}
-              </div>
-              <div style="font-size: 12px; color: #6b7280;">O/A Grades</div>
-            </div>
-          </div>
-        </div>
-        
-        <!-- Detailed Grade Breakdown -->
-        <div style="margin-bottom: 40px;">
-          <h2 style="color: #1e40af; border-bottom: 2px solid #1e40af; padding-bottom: 10px; margin-bottom: 20px;">
-            Detailed Grade Breakdown
-          </h2>
-          
-          ${reportData.map((semester, index) => `
-            <div style="margin-bottom: 30px; page-break-inside: avoid;">
-              <div style="background-color: #1e40af; color: white; padding: 10px; margin-bottom: 15px; border-radius: 5px;">
-                <h3 style="margin: 0; font-size: 18px;">${semester.semester}</h3>
-              </div>
-              
-              <table style="width: 100%; border-collapse: collapse; margin-bottom: 15px;">
-                <thead>
-                  <tr style="background-color: #f3f4f6;">
-                    <th style="border: 1px solid #d1d5db; padding: 10px; text-align: left;">Subject</th>
-                    <th style="border: 1px solid #d1d5db; padding: 10px; text-align: center;">Credits</th>
-                    <th style="border: 1px solid #d1d5db; padding: 10px; text-align: center;">Grade Point</th>
-                    <th style="border: 1px solid #d1d5db; padding: 10px; text-align: center;">Letter Grade</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  ${semester.subjects.map(subject => `
-                    <tr>
-                      <td style="border: 1px solid #d1d5db; padding: 10px;">${subject.name}</td>
-                      <td style="border: 1px solid #d1d5db; padding: 10px; text-align: center;">${subject.credit}</td>
-                      <td style="border: 1px solid #d1d5db; padding: 10px; text-align: center;">${subject.gradePoint}</td>
-                      <td style="border: 1px solid #d1d5db; padding: 10px; text-align: center; font-weight: bold;">${subject.letterGrade}</td>
-                    </tr>
-                  `).join('')}
-                </tbody>
-              </table>
-              
-              <div style="display: flex; justify-content: space-between; margin-top: 15px;">
-                <div>
-                  <strong>SGPA:</strong> ${semester.sgpa.toFixed(2)}
-                </div>
-                <div>
-                  <strong>CGPA:</strong> ${semester.cgpa.toFixed(2)}
-                </div>
-              </div>
-            </div>
-          `).join('')}
-        </div>
-        
-        <div style="margin-top: 40px; text-align: center; border-top: 2px solid #1e40af; padding-top: 20px;">
-          <div style="font-size: 14px; color: #6b7280;">
-            Generated by Manohar Labs - Your GPA, Simplified
-          </div>
-        </div>
-      `;
-      
-      document.body.appendChild(reportCardDiv);
-      
-      // Convert to canvas
-      const canvas = await html2canvas(reportCardDiv, {
-        scale: 2,
-        useCORS: true,
-        allowTaint: true,
-        backgroundColor: '#ffffff'
+      const studentName = user?.displayName || "Student";
+      const studentEmail = user?.email || "N/A";
+      const reportDate = new Date().toLocaleDateString("en-IN", {
+        day: "numeric",
+        month: "long",
+        year: "numeric",
       });
-      
-      // Remove the temporary div
-      document.body.removeChild(reportCardDiv);
-      
-      // Create PDF
-      const imgData = canvas.toDataURL('image/png');
-      const pdf = new jsPDF('p', 'mm', 'a4');
-      const imgWidth = 210;
-      const pageHeight = 295;
-      const imgHeight = (canvas.height * imgWidth) / canvas.width;
-      let heightLeft = imgHeight;
-      let position = 0;
-      
-      pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
-      heightLeft -= pageHeight;
-      
-      while (heightLeft >= 0) {
-        position = heightLeft - imgHeight;
+      const period =
+        selectedSemesters === "all"
+          ? "All Semesters"
+          : `First ${selectedSemesters} Semester${selectedSemesters === "1" ? "" : "s"}`;
+      const currentCgpa = reportData[reportData.length - 1]?.cgpa.toFixed(2) || "0.00";
+      const totalSubjects = reportData.reduce((sum, sem) => sum + sem.subjects.length, 0);
+      const oaCount = gradeDistribution
+        .filter((g) => ["O", "A+", "A"].includes(g.grade))
+        .reduce((sum, g) => sum + g.count, 0);
+
+      const hexToRgb = (hex: string) => {
+        const value = hex.replace("#", "");
+        return {
+          r: parseInt(value.slice(0, 2), 16),
+          g: parseInt(value.slice(2, 4), 16),
+          b: parseInt(value.slice(4, 6), 16),
+        };
+      };
+
+      const formatGradePoint = (value: string) => {
+        const numeric = Number(value);
+        if (Number.isNaN(numeric)) return value;
+        return Number.isInteger(numeric) ? String(numeric) : numeric.toFixed(2);
+      };
+
+      const drawHeader = (isCover: boolean) => {
+        const barHeight = isCover ? 40 : 22;
+        pdf.setFillColor(navy.r, navy.g, navy.b);
+        pdf.rect(0, 0, pageWidth, barHeight, "F");
+        pdf.setFillColor(gold.r, gold.g, gold.b);
+        pdf.rect(0, barHeight, pageWidth, 1.4, "F");
+
+        pdf.setFont("helvetica", "bold");
+        pdf.setFontSize(9);
+        pdf.setTextColor(gold.r, gold.g, gold.b);
+        pdf.text("MANOHAR LABS", margin, isCover ? 13 : 9);
+
+        pdf.setTextColor(255, 255, 255);
+        pdf.setFontSize(isCover ? 20 : 11);
+        pdf.text("Academic Transcript", margin, isCover ? 24 : 16);
+
+        if (isCover) {
+          pdf.setFont("helvetica", "normal");
+          pdf.setFontSize(10);
+          pdf.setTextColor(203, 213, 225);
+          pdf.text("Official grade report", margin, 32);
+        } else {
+          pdf.setFont("helvetica", "normal");
+          pdf.setFontSize(8);
+          pdf.setTextColor(203, 213, 225);
+          pdf.text(studentName, pageWidth - margin, 10, { align: "right" });
+          pdf.text(`CGPA  ${currentCgpa}`, pageWidth - margin, 16, { align: "right" });
+        }
+      };
+
+      const drawFooter = (pageNum: number, totalPages: number) => {
+        pdf.setFillColor(navy.r, navy.g, navy.b);
+        pdf.rect(0, pageHeight - 12, pageWidth, 12, "F");
+        pdf.setFont("helvetica", "normal");
+        pdf.setFontSize(7.5);
+        pdf.setTextColor(203, 213, 225);
+        pdf.text("Confidential academic record  ·  Generated by Manohar Labs", margin, pageHeight - 5);
+        pdf.text(`Page ${pageNum} of ${totalPages}`, pageWidth - margin, pageHeight - 5, { align: "right" });
+      };
+
+      const startContentPage = () => {
         pdf.addPage();
-        pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
-        heightLeft -= pageHeight;
+        drawHeader(false);
+        return headerHeight + 8;
+      };
+
+      const colWidths = [
+        contentWidth * 0.54,
+        contentWidth * 0.14,
+        contentWidth * 0.16,
+        contentWidth * 0.16,
+      ];
+
+      const measureSemesterBlock = (semester: SemesterReport) => {
+        pdf.setFont("helvetica", "normal");
+        pdf.setFontSize(9);
+        const nameWidth = colWidths[0] - 8;
+        const rowHeights = semester.subjects.map((subject) => {
+          const lines = pdf.splitTextToSize(subject.name, nameWidth);
+          return Math.max(8, lines.length * 4.2 + 4);
+        });
+        const tableHeight = 9 + rowHeights.reduce((sum, h) => sum + h, 0);
+        return 10 + 8 + tableHeight + 14;
+      };
+
+      const drawSemesterBlock = (semester: SemesterReport, startY: number) => {
+        let y = startY;
+
+        pdf.setFillColor(navy.r, navy.g, navy.b);
+        pdf.rect(margin, y, contentWidth, 9, "F");
+        pdf.setFont("helvetica", "bold");
+        pdf.setFontSize(11);
+        pdf.setTextColor(255, 255, 255);
+        pdf.text(semester.semester.toUpperCase(), margin + 4, y + 6.2);
+        y += 9;
+
+        const headers = ["Subject", "Credits", "Grade Point", "Letter"];
+        pdf.setFillColor(rowAlt.r, rowAlt.g, rowAlt.b);
+        pdf.rect(margin, y, contentWidth, 8, "F");
+        pdf.setFont("helvetica", "bold");
+        pdf.setFontSize(8);
+        pdf.setTextColor(slate.r, slate.g, slate.b);
+        let x = margin;
+        headers.forEach((header, i) => {
+          const align = i === 0 ? "left" : "center";
+          const tx = i === 0 ? x + 3 : x + colWidths[i] / 2;
+          pdf.text(header, tx, y + 5.4, { align });
+          x += colWidths[i];
+        });
+        y += 8;
+
+        pdf.setFont("helvetica", "normal");
+        pdf.setFontSize(9);
+        semester.subjects.forEach((subject, index) => {
+          const nameWidth = colWidths[0] - 8;
+          const lines = pdf.splitTextToSize(subject.name, nameWidth);
+          const rowH = Math.max(8, lines.length * 4.2 + 4);
+
+          if (index % 2 === 1) {
+            pdf.setFillColor(light.r, light.g, light.b);
+            pdf.rect(margin, y, contentWidth, rowH, "F");
+          }
+
+          pdf.setDrawColor(line.r, line.g, line.b);
+          pdf.setLineWidth(0.2);
+          pdf.line(margin, y + rowH, margin + contentWidth, y + rowH);
+
+          const textY = y + rowH / 2 + 1.2;
+          pdf.setTextColor(30, 41, 59);
+          pdf.text(lines, margin + 3, y + 5.2);
+
+          const cells = [
+            String(subject.credit),
+            formatGradePoint(subject.gradePoint),
+            subject.letterGrade,
+          ];
+          x = margin + colWidths[0];
+          cells.forEach((cell, i) => {
+            if (i === 2) pdf.setFont("helvetica", "bold");
+            else pdf.setFont("helvetica", "normal");
+            pdf.text(cell, x + colWidths[i + 1] / 2, textY, { align: "center" });
+            x += colWidths[i + 1];
+          });
+          y += rowH;
+        });
+
+        pdf.setFillColor(navy.r, navy.g, navy.b);
+        pdf.rect(margin, y, contentWidth, 10, "F");
+        pdf.setFont("helvetica", "bold");
+        pdf.setFontSize(9);
+        pdf.setTextColor(255, 255, 255);
+        pdf.text(`SGPA    ${semester.sgpa.toFixed(2)}`, margin + 4, y + 6.5);
+        pdf.setTextColor(gold.r, gold.g, gold.b);
+        pdf.text(`CGPA    ${semester.cgpa.toFixed(2)}`, pageWidth - margin - 4, y + 6.5, { align: "right" });
+
+        return y + 16;
+      };
+
+      // Cover / summary page
+      drawHeader(true);
+      let y = 50;
+
+      pdf.setFillColor(light.r, light.g, light.b);
+      pdf.rect(margin, y, contentWidth, 26, "F");
+      pdf.setDrawColor(line.r, line.g, line.b);
+      pdf.setLineWidth(0.3);
+      pdf.rect(margin, y, contentWidth, 26);
+
+      const info = [
+        ["Student", studentName],
+        ["Email", studentEmail],
+        ["Issued", reportDate],
+        ["Period", period],
+      ];
+      info.forEach((item, i) => {
+        const col = i % 2;
+        const row = Math.floor(i / 2);
+        const ix = margin + 6 + col * (contentWidth / 2);
+        const iy = y + 8 + row * 11;
+        pdf.setFont("helvetica", "normal");
+        pdf.setFontSize(7.5);
+        pdf.setTextColor(muted.r, muted.g, muted.b);
+        pdf.text(item[0].toUpperCase(), ix, iy);
+        pdf.setFont("helvetica", "bold");
+        pdf.setFontSize(10);
+        pdf.setTextColor(navy.r, navy.g, navy.b);
+        pdf.text(item[1], ix, iy + 5);
+      });
+      y += 34;
+
+      const stats = [
+        { label: "Semesters", value: String(reportData.length) },
+        { label: "Subjects", value: String(totalSubjects) },
+        { label: "CGPA", value: currentCgpa },
+        { label: "O / A Grades", value: String(oaCount) },
+      ];
+      const gap = 4;
+      const boxW = (contentWidth - gap * 3) / 4;
+      stats.forEach((stat, i) => {
+        const bx = margin + i * (boxW + gap);
+        pdf.setFillColor(navy.r, navy.g, navy.b);
+        pdf.rect(bx, y, boxW, 22, "F");
+        pdf.setFont("helvetica", "bold");
+        pdf.setFontSize(14);
+        pdf.setTextColor(255, 255, 255);
+        pdf.text(stat.value, bx + boxW / 2, y + 10, { align: "center" });
+        pdf.setFont("helvetica", "normal");
+        pdf.setFontSize(7);
+        pdf.setTextColor(gold.r, gold.g, gold.b);
+        pdf.text(stat.label.toUpperCase(), bx + boxW / 2, y + 17, { align: "center" });
+      });
+      y += 30;
+
+      const chartH = 62;
+      const chartGap = 6;
+      const chartW = (contentWidth - chartGap) / 2;
+
+      pdf.setFillColor(255, 255, 255);
+      pdf.setDrawColor(line.r, line.g, line.b);
+      pdf.rect(margin, y, chartW, chartH);
+      pdf.setFont("helvetica", "bold");
+      pdf.setFontSize(9);
+      pdf.setTextColor(navy.r, navy.g, navy.b);
+      pdf.text("CGPA TREND", margin + 5, y + 7);
+
+      const plotX = margin + 10;
+      const plotY = y + 12;
+      const plotW = chartW - 18;
+      const plotH = 40;
+      pdf.setDrawColor(line.r, line.g, line.b);
+      pdf.line(plotX, plotY + plotH, plotX + plotW, plotY + plotH);
+      pdf.line(plotX, plotY, plotX, plotY + plotH);
+      pdf.setFont("helvetica", "normal");
+      pdf.setFontSize(6);
+      pdf.setTextColor(muted.r, muted.g, muted.b);
+      pdf.text("10", plotX - 1, plotY + 2, { align: "right" });
+      pdf.text("0", plotX - 1, plotY + plotH, { align: "right" });
+
+      if (reportData.length > 0) {
+        const points = reportData.map((sem, index) => {
+          const px = plotX + (reportData.length === 1 ? plotW / 2 : (index / (reportData.length - 1)) * plotW);
+          const py = plotY + plotH - (sem.cgpa / 10) * plotH;
+          return { px, py, label: sem.semester.replace("Semester ", "S") };
+        });
+        pdf.setDrawColor(navy.r, navy.g, navy.b);
+        pdf.setLineWidth(0.7);
+        points.forEach((point, index) => {
+          if (index > 0) {
+            pdf.line(points[index - 1].px, points[index - 1].py, point.px, point.py);
+          }
+        });
+        points.forEach((point) => {
+          pdf.setFillColor(gold.r, gold.g, gold.b);
+          pdf.circle(point.px, point.py, 1.1, "F");
+          pdf.setFontSize(6);
+          pdf.setTextColor(slate.r, slate.g, slate.b);
+          pdf.text(point.label, point.px, plotY + plotH + 4, { align: "center" });
+        });
       }
-      
-      // Download the PDF
-      const fileName = `GradeCal_Report_${user?.displayName?.replace(/\s+/g, '_') || 'Student'}_${new Date().toISOString().split('T')[0]}.pdf`;
+
+      const distX = margin + chartW + chartGap;
+      pdf.setDrawColor(line.r, line.g, line.b);
+      pdf.setLineWidth(0.3);
+      pdf.rect(distX, y, chartW, chartH);
+      pdf.setFont("helvetica", "bold");
+      pdf.setFontSize(9);
+      pdf.setTextColor(navy.r, navy.g, navy.b);
+      pdf.text("GRADE MIX", distX + 5, y + 7);
+
+      const maxCount = Math.max(...gradeDistribution.map((g) => g.count), 1);
+      const barAreaH = 48;
+      const barH = Math.min(6, barAreaH / Math.max(gradeDistribution.length, 1) - 1.2);
+      gradeDistribution.forEach((grade, index) => {
+        const by = y + 12 + index * (barH + 1.4);
+        const color = hexToRgb(grade.color);
+        pdf.setFont("helvetica", "bold");
+        pdf.setFontSize(7);
+        pdf.setTextColor(navy.r, navy.g, navy.b);
+        pdf.text(grade.grade, distX + 5, by + barH - 1.2);
+        const barX = distX + 16;
+        const barMax = chartW - 42;
+        const barW = Math.max(2, (grade.count / maxCount) * barMax);
+        pdf.setFillColor(rowAlt.r, rowAlt.g, rowAlt.b);
+        pdf.rect(barX, by, barMax, barH - 0.6, "F");
+        pdf.setFillColor(color.r, color.g, color.b);
+        pdf.rect(barX, by, barW, barH - 0.6, "F");
+        pdf.setFont("helvetica", "normal");
+        pdf.setTextColor(slate.r, slate.g, slate.b);
+        pdf.text(`${grade.count}  (${grade.percentage.toFixed(0)}%)`, distX + chartW - 5, by + barH - 1.2, {
+          align: "right",
+        });
+      });
+
+      y += chartH + 10;
+      pdf.setFont("helvetica", "normal");
+      pdf.setFontSize(7.5);
+      pdf.setTextColor(muted.r, muted.g, muted.b);
+      pdf.text("Grading scale:  10–O   9–A+   8–A   7–B+   6–B   5–C   4–P   below 4–F", margin, y);
+
+      // Semester tables — never split a table across pages
+      y = startContentPage();
+      pdf.setFont("helvetica", "bold");
+      pdf.setFontSize(12);
+      pdf.setTextColor(navy.r, navy.g, navy.b);
+      pdf.text("Semester Grade Records", margin, y);
+      pdf.setFillColor(gold.r, gold.g, gold.b);
+      pdf.rect(margin, y + 2.5, 36, 0.7, "F");
+      y += 10;
+
+      reportData.forEach((semester) => {
+        const needed = measureSemesterBlock(semester);
+        if (y + needed > pageHeight - footerReserve) {
+          y = startContentPage();
+        }
+        y = drawSemesterBlock(semester, y);
+      });
+
+      const totalPages = pdf.getNumberOfPages();
+      for (let i = 1; i <= totalPages; i++) {
+        pdf.setPage(i);
+        drawFooter(i, totalPages);
+      }
+
+      const fileName = `Academic_Transcript_${studentName.replace(/\s+/g, "_")}_${new Date().toISOString().split("T")[0]}.pdf`;
       pdf.save(fileName);
-      
     } catch (error) {
-      console.error('Error generating PDF:', error);
+      console.error("Error generating PDF:", error);
     } finally {
       setIsGenerating(false);
     }
@@ -485,7 +590,7 @@ export default function ReportCardGenerator({ semestersData, user }: ReportCardG
           ) : (
             <>
               <FileText className="mr-2 h-4 w-4" />
-              Generate Enhanced Report Card
+              Generate Professional Report Card
             </>
           )}
         </Button>
